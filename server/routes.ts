@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateWebsite, customizeWebsiteColors, customizeWebsiteTexts } from "./openai";
+import { generateWebsite, customizeWebsiteColors, customizeWebsiteTexts, customizeWebsiteImages } from "./openai";
 import { insertGenerationRequestSchema, customizeWebsiteSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import JSZip from "jszip";
@@ -69,12 +69,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedHtml = await customizeWebsiteTexts(updatedHtml, validatedData.customTexts);
       }
 
+      // Apply image customization if provided
+      if (validatedData.customImages && Object.keys(validatedData.customImages).length > 0) {
+        updatedHtml = await customizeWebsiteImages(updatedHtml, validatedData.customImages);
+      }
+
       // Update in storage
       const updated = await storage.updateGenerationRequest(validatedData.id, {
         generatedHtml: updatedHtml,
         generatedCss: updatedCss,
         customColors: validatedData.customColors || existing.customColors,
         customTexts: validatedData.customTexts || existing.customTexts,
+        customImages: validatedData.customImages || existing.customImages,
       });
 
       res.json(updated);

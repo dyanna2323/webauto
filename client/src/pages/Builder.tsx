@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowLeft, Smartphone, Monitor, Download, Palette, Loader2, Sparkles, Type } from 'lucide-react';
+import { ArrowLeft, Smartphone, Monitor, Download, Palette, Loader2, Sparkles, Type, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,6 +37,10 @@ export default function Builder() {
     title: '',
     tagline: '',
     description: '',
+  });
+  const [customImages, setCustomImages] = useState({
+    hero: '',
+    logo: '',
   });
   const [generatedWebsite, setGeneratedWebsite] = useState<GenerationRequest | null>(null);
 
@@ -83,10 +87,16 @@ export default function Builder() {
         Object.entries(customTexts).filter(([_, value]) => value.trim() !== '')
       );
 
+      // Filter out empty strings from customImages
+      const filteredImages = Object.fromEntries(
+        Object.entries(customImages).filter(([_, value]) => value.trim() !== '')
+      );
+
       return await apiRequest<GenerationRequest>('POST', '/api/customize', {
         id: generatedWebsite.id,
         customColors,
         customTexts: Object.keys(filteredTexts).length > 0 ? filteredTexts : undefined,
+        customImages: Object.keys(filteredImages).length > 0 ? filteredImages : undefined,
       });
     },
     onSuccess: (data) => {
@@ -128,7 +138,7 @@ export default function Builder() {
     }
   };
 
-  // Apply text customizations to preview in real-time
+  // Apply text and image customizations to preview in real-time
   const getPreviewHtml = () => {
     if (!generatedWebsite?.generatedHtml) return '<div class="p-8 text-center">Vista previa no disponible</div>';
     
@@ -144,6 +154,23 @@ export default function Builder() {
     }
     if (customTexts.description.trim()) {
       html = html.replace(/<p[^>]*>.*?<\/p>/i, `<p>${customTexts.description}</p>`);
+    }
+    
+    // Apply image replacements in real-time
+    if (customImages.logo.trim()) {
+      // Replace logo first (images with logo class or id)
+      html = html.replace(/(<img[^>]*(?:class=["'][^"']*logo[^"']*["']|id=["']logo["'])[^>]*src=["'])[^"']*([^>]*>)/i, `$1${customImages.logo}$2`);
+    }
+    if (customImages.hero.trim()) {
+      // Replace hero image (first image that is NOT a logo)
+      // Look for images with hero/banner class, or the first img that doesn't have logo class
+      const heroMatch = html.match(/(<img[^>]*(?:class=["'][^"']*(?:hero|banner)[^"']*["'])[^>]*src=["'])[^"']*([^>]*>)/i);
+      if (heroMatch) {
+        html = html.replace(/(<img[^>]*(?:class=["'][^"']*(?:hero|banner)[^"']*["'])[^>]*src=["'])[^"']*([^>]*>)/i, `$1${customImages.hero}$2`);
+      } else {
+        // Fallback: replace first image that doesn't contain "logo" in class/id
+        html = html.replace(/(<img(?![^>]*(?:class|id)=["'][^"']*logo[^"']*["'])[^>]*src=["'])[^"']*([^>]*>)/i, `$1${customImages.hero}$2`);
+      }
     }
     
     return html;
@@ -435,6 +462,56 @@ export default function Builder() {
                             className="min-h-[80px]"
                             data-testid="input-text-description"
                           />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Image Customization Section */}
+                    <div className="pt-6 border-t mt-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Image className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold">Cambiar Imágenes</h3>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="image-hero" className="text-sm mb-2 block">
+                            Imagen Principal / Hero
+                          </Label>
+                          <input
+                            id="image-hero"
+                            type="url"
+                            value={customImages.hero}
+                            onChange={(e) =>
+                              setCustomImages((prev) => ({ ...prev, hero: e.target.value }))
+                            }
+                            placeholder="https://ejemplo.com/imagen-hero.jpg"
+                            className="w-full h-10 px-3 rounded border bg-background"
+                            data-testid="input-image-hero"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Pega la URL de una imagen externa
+                          </p>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="image-logo" className="text-sm mb-2 block">
+                            Logo
+                          </Label>
+                          <input
+                            id="image-logo"
+                            type="url"
+                            value={customImages.logo}
+                            onChange={(e) =>
+                              setCustomImages((prev) => ({ ...prev, logo: e.target.value }))
+                            }
+                            placeholder="https://ejemplo.com/logo.png"
+                            className="w-full h-10 px-3 rounded border bg-background"
+                            data-testid="input-image-logo"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Pega la URL de tu logo
+                          </p>
                         </div>
                       </div>
                     </div>

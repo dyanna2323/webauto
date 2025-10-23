@@ -16,6 +16,7 @@ export const generationRequests = pgTable("generation_requests", {
     accent?: string;
   }>(),
   customTexts: json("custom_texts").$type<Record<string, string>>(),
+  customImages: json("custom_images").$type<Record<string, string>>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -36,6 +37,7 @@ export const customizeWebsiteSchema = z.object({
     accent: z.string().optional(),
   }).optional(),
   customTexts: z.record(z.string()).optional(),
+  customImages: z.record(z.string()).optional(),
 });
 
 export type InsertGenerationRequest = z.infer<typeof insertGenerationRequestSchema>;

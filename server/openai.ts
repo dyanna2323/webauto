@@ -170,3 +170,44 @@ Apply these text changes to the HTML where appropriate, maintaining all structur
     return originalHtml;
   }
 }
+
+export async function customizeWebsiteImages(
+  originalHtml: string,
+  images: Record<string, string>
+): Promise<string> {
+  if (!images || Object.keys(images).length === 0) {
+    return originalHtml;
+  }
+
+  // Simple image replacement using regex
+  let customizedHtml = originalHtml;
+
+  // Replace logo first, then hero (order matters)
+  if (images.logo && images.logo.trim()) {
+    // Replace logo image (with logo class or id)
+    customizedHtml = customizedHtml.replace(
+      /(<img[^>]*(?:class=["'][^"']*logo[^"']*["']|id=["']logo["'])[^>]*src=["'])[^"']*([^>]*>)/i,
+      `$1${images.logo}$2`
+    );
+  }
+
+  if (images.hero && images.hero.trim()) {
+    // Replace hero image (first image that is NOT a logo)
+    // Look for images with hero/banner class first
+    const heroMatch = customizedHtml.match(/(<img[^>]*(?:class=["'][^"']*(?:hero|banner)[^"']*["'])[^>]*src=["'])[^"']*([^>]*>)/i);
+    if (heroMatch) {
+      customizedHtml = customizedHtml.replace(
+        /(<img[^>]*(?:class=["'][^"']*(?:hero|banner)[^"']*["'])[^>]*src=["'])[^"']*([^>]*>)/i,
+        `$1${images.hero}$2`
+      );
+    } else {
+      // Fallback: replace first image that doesn't contain "logo" in class/id
+      customizedHtml = customizedHtml.replace(
+        /(<img(?![^>]*(?:class|id)=["'][^"']*logo[^"']*["'])[^>]*src=["'])[^"']*([^>]*>)/i,
+        `$1${images.hero}$2`
+      );
+    }
+  }
+
+  return customizedHtml;
+}

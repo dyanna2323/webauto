@@ -15,6 +15,7 @@ export const generationRequests = pgTable("generation_requests", {
     secondary?: string;
     accent?: string;
   }>(),
+  customTexts: json("custom_texts").$type<Record<string, string>>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowLeft, Smartphone, Monitor, Download, Palette, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Smartphone, Monitor, Download, Palette, Loader2, Sparkles, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,6 +32,11 @@ export default function Builder() {
     primary: '#8B5CF6',
     secondary: '#06B6D4',
     accent: '#10B981',
+  });
+  const [customTexts, setCustomTexts] = useState({
+    title: '',
+    tagline: '',
+    description: '',
   });
   const [generatedWebsite, setGeneratedWebsite] = useState<GenerationRequest | null>(null);
 
@@ -73,15 +78,21 @@ export default function Builder() {
     mutationFn: async () => {
       if (!generatedWebsite) return;
 
+      // Filter out empty strings from customTexts
+      const filteredTexts = Object.fromEntries(
+        Object.entries(customTexts).filter(([_, value]) => value.trim() !== '')
+      );
+
       return await apiRequest<GenerationRequest>('POST', '/api/customize', {
         id: generatedWebsite.id,
         customColors,
+        customTexts: Object.keys(filteredTexts).length > 0 ? filteredTexts : undefined,
       });
     },
     onSuccess: (data) => {
       setGeneratedWebsite(data);
       toast({
-        title: 'Colores actualizados',
+        title: 'Cambios aplicados',
         description: 'Tu web se ha personalizado correctamente.',
       });
     },
@@ -117,13 +128,34 @@ export default function Builder() {
     }
   };
 
+  // Apply text customizations to preview in real-time
+  const getPreviewHtml = () => {
+    if (!generatedWebsite?.generatedHtml) return '<div class="p-8 text-center">Vista previa no disponible</div>';
+    
+    let html = generatedWebsite.generatedHtml;
+    
+    // Apply text replacements in real-time
+    if (customTexts.title.trim()) {
+      // Simple replacement for demo - in production this would be more sophisticated
+      html = html.replace(/<h1[^>]*>.*?<\/h1>/i, `<h1>${customTexts.title}</h1>`);
+    }
+    if (customTexts.tagline.trim()) {
+      html = html.replace(/<h2[^>]*>.*?<\/h2>/i, `<h2>${customTexts.tagline}</h2>`);
+    }
+    if (customTexts.description.trim()) {
+      html = html.replace(/<p[^>]*>.*?<\/p>/i, `<p>${customTexts.description}</p>`);
+    }
+    
+    return html;
+  };
+
   const previewContent = generatedWebsite ? (
     <div
       className="w-full h-full bg-white"
       dangerouslySetInnerHTML={{
         __html: `
           <style>${generatedWebsite.generatedCss || ''}</style>
-          ${generatedWebsite.generatedHtml || '<div class="p-8 text-center">Vista previa no disponible</div>'}
+          ${getPreviewHtml()}
         `,
       }}
     />
@@ -347,20 +379,80 @@ export default function Builder() {
                       </div>
                     </div>
 
+                    {/* Text Customization Section */}
+                    <div className="pt-6 border-t mt-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Type className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold">Editar Textos</h3>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="text-title" className="text-sm mb-2 block">
+                            Título Principal
+                          </Label>
+                          <input
+                            id="text-title"
+                            type="text"
+                            value={customTexts.title}
+                            onChange={(e) =>
+                              setCustomTexts((prev) => ({ ...prev, title: e.target.value }))
+                            }
+                            placeholder="Ej: Bienvenido a mi Negocio"
+                            className="w-full h-10 px-3 rounded border bg-background"
+                            data-testid="input-text-title"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="text-tagline" className="text-sm mb-2 block">
+                            Eslogan / Subtítulo
+                          </Label>
+                          <input
+                            id="text-tagline"
+                            type="text"
+                            value={customTexts.tagline}
+                            onChange={(e) =>
+                              setCustomTexts((prev) => ({ ...prev, tagline: e.target.value }))
+                            }
+                            placeholder="Ej: Calidad y servicio desde 1990"
+                            className="w-full h-10 px-3 rounded border bg-background"
+                            data-testid="input-text-tagline"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="text-description" className="text-sm mb-2 block">
+                            Descripción Breve
+                          </Label>
+                          <Textarea
+                            id="text-description"
+                            value={customTexts.description}
+                            onChange={(e) =>
+                              setCustomTexts((prev) => ({ ...prev, description: e.target.value }))
+                            }
+                            placeholder="Ej: Ofrecemos servicios profesionales con más de 30 años de experiencia..."
+                            className="min-h-[80px]"
+                            data-testid="input-text-description"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <Button
                       onClick={() => customizeMutation.mutate()}
                       disabled={customizeMutation.isPending}
-                      className="w-full"
-                      variant="outline"
-                      data-testid="button-apply-colors"
+                      className="w-full mt-6"
+                      variant="default"
+                      data-testid="button-apply-customization"
                     >
                       {customizeMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Aplicando...
+                          Aplicando cambios...
                         </>
                       ) : (
-                        'Aplicar Colores'
+                        'Aplicar Cambios'
                       )}
                     </Button>
                   </div>

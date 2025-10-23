@@ -1,37 +1,53 @@
-import { type User, type InsertUser } from "@shared/schema";
+import type { GenerationRequest, InsertGenerationRequest, CustomizeWebsite } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createGenerationRequest(request: InsertGenerationRequest): Promise<GenerationRequest>;
+  getGenerationRequest(id: string): Promise<GenerationRequest | undefined>;
+  updateGenerationRequest(id: string, updates: Partial<GenerationRequest>): Promise<GenerationRequest | undefined>;
+  getAllGenerationRequests(): Promise<GenerationRequest[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private generationRequests: Map<string, GenerationRequest>;
 
   constructor() {
-    this.users = new Map();
+    this.generationRequests = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createGenerationRequest(insertRequest: InsertGenerationRequest): Promise<GenerationRequest> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const request: GenerationRequest = {
+      ...insertRequest,
+      id,
+      generatedHtml: null,
+      generatedCss: null,
+      generatedJs: null,
+      customColors: null,
+      createdAt: new Date(),
+    };
+    this.generationRequests.set(id, request);
+    return request;
+  }
+
+  async getGenerationRequest(id: string): Promise<GenerationRequest | undefined> {
+    return this.generationRequests.get(id);
+  }
+
+  async updateGenerationRequest(
+    id: string,
+    updates: Partial<GenerationRequest>
+  ): Promise<GenerationRequest | undefined> {
+    const existing = this.generationRequests.get(id);
+    if (!existing) return undefined;
+
+    const updated: GenerationRequest = { ...existing, ...updates };
+    this.generationRequests.set(id, updated);
+    return updated;
+  }
+
+  async getAllGenerationRequests(): Promise<GenerationRequest[]> {
+    return Array.from(this.generationRequests.values());
   }
 }
 

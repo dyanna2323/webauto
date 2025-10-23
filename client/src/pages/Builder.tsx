@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { ArrowLeft, Smartphone, Monitor, Download, Palette, Loader2, Sparkles, Type, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,55 @@ export default function Builder() {
 
   const { toast } = useToast();
 
+  // Check if editing existing website from Dashboard
+  useEffect(() => {
+    const editingData = localStorage.getItem('editingWebsite');
+    if (editingData) {
+      try {
+        const website = JSON.parse(editingData) as GenerationRequest;
+        setGeneratedWebsite(website);
+        setBusinessDescription(website.businessDescription);
+        setTemplateType(website.templateType as TemplateType);
+        
+        // Pre-load custom colors if they exist
+        if (website.customColors) {
+          setCustomColors({
+            primary: website.customColors.primary || '#8B5CF6',
+            secondary: website.customColors.secondary || '#06B6D4',
+            accent: website.customColors.accent || '#10B981',
+          });
+        }
+        
+        // Pre-load custom texts if they exist
+        if (website.customTexts) {
+          setCustomTexts({
+            title: website.customTexts.title || '',
+            tagline: website.customTexts.tagline || '',
+            description: website.customTexts.description || '',
+          });
+        }
+        
+        // Pre-load custom images if they exist
+        if (website.customImages) {
+          setCustomImages({
+            hero: website.customImages.hero || '',
+            logo: website.customImages.logo || '',
+          });
+        }
+        
+        // Clear localStorage
+        localStorage.removeItem('editingWebsite');
+        
+        toast({
+          title: '¡Editando web!',
+          description: 'Puedes continuar personalizando tu web.',
+        });
+      } catch (error) {
+        console.error('Error loading website from localStorage:', error);
+      }
+    }
+  }, [toast]);
+
   // Fetch available templates from backend
   const { data: templatesData, isLoading: templatesLoading } = useQuery<TemplatesResponse>({
     queryKey: ['/api/templates'],
@@ -57,10 +106,11 @@ export default function Builder() {
         throw new Error('Por favor, describe tu negocio');
       }
 
-      return await apiRequest<GenerationRequest>('POST', '/api/generate', {
+      const res = await apiRequest('POST', '/api/generate', {
         businessDescription,
         templateType,
       });
+      return await res.json() as GenerationRequest;
     },
     onSuccess: (data) => {
       setGeneratedWebsite(data);
@@ -80,7 +130,7 @@ export default function Builder() {
 
   const customizeMutation = useMutation({
     mutationFn: async () => {
-      if (!generatedWebsite) return;
+      if (!generatedWebsite) return undefined;
 
       // Filter out empty strings from customTexts
       const filteredTexts = Object.fromEntries(
@@ -92,19 +142,22 @@ export default function Builder() {
         Object.entries(customImages).filter(([_, value]) => value.trim() !== '')
       );
 
-      return await apiRequest<GenerationRequest>('POST', '/api/customize', {
+      const res = await apiRequest('POST', '/api/customize', {
         id: generatedWebsite.id,
         customColors,
         customTexts: Object.keys(filteredTexts).length > 0 ? filteredTexts : undefined,
         customImages: Object.keys(filteredImages).length > 0 ? filteredImages : undefined,
       });
+      return await res.json() as GenerationRequest;
     },
     onSuccess: (data) => {
-      setGeneratedWebsite(data);
-      toast({
-        title: 'Cambios aplicados',
-        description: 'Tu web se ha personalizado correctamente.',
-      });
+      if (data) {
+        setGeneratedWebsite(data);
+        toast({
+          title: 'Cambios aplicados',
+          description: 'Tu web se ha personalizado correctamente.',
+        });
+      }
     },
   });
 

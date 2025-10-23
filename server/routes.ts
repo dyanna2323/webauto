@@ -152,6 +152,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DELETE /api/generation/:id - Delete a website
+  app.delete("/api/generation/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.user as any;
+
+      // Verify ownership
+      const website = await storage.getGenerationRequest(id);
+      if (!website) {
+        return res.status(404).json({ error: "Web no encontrada" });
+      }
+
+      if (website.userId !== user.id) {
+        return res.status(403).json({ error: "No tienes permiso para eliminar esta web" });
+      }
+
+      await storage.deleteGenerationRequest(id);
+      res.json({ message: "Web eliminada exitosamente" });
+    } catch (error) {
+      console.error("Error deleting website:", error);
+      res.status(500).json({ error: "Error al eliminar la web" });
+    }
+  });
+
   // POST /api/generate - Generate a new website with AI (now with optional auth)
   app.post("/api/generate", async (req, res) => {
     try {

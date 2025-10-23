@@ -44,7 +44,20 @@ Preferred communication style: Simple, everyday language.
 **Page Structure:**
 - Landing: Marketing page with pain points, features, pricing
 - Builder: Website generation interface with preview and customization
+- Login: User authentication page with email/password
+- Register: User registration with password confirmation
+- Dashboard: User's websites management (view, edit, delete, download)
 - 404: Not found page
+
+**Recent Features (October 2025):**
+
+**User Dashboard:**
+- Grid layout showing all user's generated websites
+- Website cards with preview, date, template type
+- Actions: Edit (reopens in Builder), Download (ZIP), Delete (with confirmation)
+- Empty state with call-to-action
+- Integration with Builder: localStorage-based editing flow
+- Secure deletion with ownership verification
 
 ### Backend Architecture
 

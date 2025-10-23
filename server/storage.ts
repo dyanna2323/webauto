@@ -39,6 +39,7 @@ export interface IStorage {
   createGenerationRequest(request: InsertGenerationRequest, userId?: number): Promise<GenerationRequest>;
   getGenerationRequest(id: string): Promise<GenerationRequest | undefined>;
   updateGenerationRequest(id: string, updates: Partial<GenerationRequest>): Promise<GenerationRequest | undefined>;
+  deleteGenerationRequest(id: string): Promise<boolean>;
   getAllGenerationRequests(): Promise<GenerationRequest[]>;
   getUserGenerationRequests(userId: number): Promise<GenerationRequest[]>;
   
@@ -101,6 +102,10 @@ export class MemStorage implements IStorage {
   
   async getUserGenerationRequests(userId: number): Promise<GenerationRequest[]> {
     return Array.from(this.generationRequests.values()).filter(r => r.userId === userId);
+  }
+  
+  async deleteGenerationRequest(id: string): Promise<boolean> {
+    return this.generationRequests.delete(id);
   }
   
   async createUser(user: InsertUser): Promise<User> {
@@ -205,6 +210,11 @@ export class DbStorage implements IStorage {
   
   async getUserGenerationRequests(userId: number): Promise<GenerationRequest[]> {
     return db.select().from(generationRequests).where(eq(generationRequests.userId, userId));
+  }
+  
+  async deleteGenerationRequest(id: string): Promise<boolean> {
+    const result = await db.delete(generationRequests).where(eq(generationRequests.id, id));
+    return true; // Drizzle returns count, but we return boolean for interface compatibility
   }
 
   // User methods

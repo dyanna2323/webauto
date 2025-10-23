@@ -1,8 +1,9 @@
-import type { GenerationRequest, InsertGenerationRequest, CustomizeWebsite } from "@shared/schema";
-import { generationRequests } from "@shared/schema";
+import type { GenerationRequest, InsertGenerationRequest, CustomizeWebsite, User, InsertUser } from "@shared/schema";
+import { generationRequests, users } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 // Helper to recursively remove undefined values from objects
 // Also removes objects/arrays that become empty after sanitization
@@ -34,29 +35,44 @@ function sanitizeObject(obj: any): any {
 }
 
 export interface IStorage {
-  createGenerationRequest(request: InsertGenerationRequest): Promise<GenerationRequest>;
+  // Generation requests
+  createGenerationRequest(request: InsertGenerationRequest, userId?: number): Promise<GenerationRequest>;
   getGenerationRequest(id: string): Promise<GenerationRequest | undefined>;
   updateGenerationRequest(id: string, updates: Partial<GenerationRequest>): Promise<GenerationRequest | undefined>;
   getAllGenerationRequests(): Promise<GenerationRequest[]>;
+  getUserGenerationRequests(userId: number): Promise<GenerationRequest[]>;
+  
+  // Users
+  createUser(user: InsertUser): Promise<User>;
+  getUserById(id: number): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  verifyUserPassword(email: string, password: string): Promise<User | undefined>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private generationRequests: Map<string, GenerationRequest>;
+  private users: Map<number, User>;
+  private nextUserId: number;
 
   constructor() {
     this.generationRequests = new Map();
+    this.users = new Map();
+    this.nextUserId = 1;
   }
 
-  async createGenerationRequest(insertRequest: InsertGenerationRequest): Promise<GenerationRequest> {
+  async createGenerationRequest(insertRequest: InsertGenerationRequest, userId?: number): Promise<GenerationRequest> {
     const id = randomUUID();
     const request: GenerationRequest = {
       ...insertRequest,
       id,
+      userId: userId || null,
       generatedHtml: null,
       generatedCss: null,
       generatedJs: null,
       customColors: null,
       customTexts: null,
+      customImages: null,
       createdAt: new Date(),
     };
     this.generationRequests.set(id, request);
@@ -82,19 +98,65 @@ export class MemStorage implements IStorage {
   async getAllGenerationRequests(): Promise<GenerationRequest[]> {
     return Array.from(this.generationRequests.values());
   }
+  
+  async getUserGenerationRequests(userId: number): Promise<GenerationRequest[]> {
+    return Array.from(this.generationRequests.values()).filter(r => r.userId === userId);
+  }
+  
+  async createUser(user: InsertUser): Promise<User> {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const newUser: User = {
+      id: this.nextUserId++,
+      email: user.email,
+      password: hashedPassword,
+      name: user.name || null,
+      plan: "free",
+      createdAt: new Date(),
+    };
+    this.users.set(newUser.id, newUser);
+    return newUser;
+  }
+  
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.email === email);
+  }
+  
+  async verifyUserPassword(email: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return undefined;
+    const isValid = await bcrypt.compare(password, user.password);
+    return isValid ? user : undefined;
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    if (updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 10);
+    }
+    const updated = { ...user, ...updates };
+    this.users.set(id, updated);
+    return updated;
+  }
 }
 
 export class DbStorage implements IStorage {
-  async createGenerationRequest(insertRequest: InsertGenerationRequest): Promise<GenerationRequest> {
+  async createGenerationRequest(insertRequest: InsertGenerationRequest, userId?: number): Promise<GenerationRequest> {
     const id = randomUUID();
     const request: GenerationRequest = {
       ...insertRequest,
       id,
+      userId: userId || null,
       generatedHtml: null,
       generatedCss: null,
       generatedJs: null,
       customColors: null,
       customTexts: null,
+      customImages: null,
       createdAt: new Date(),
     };
     
@@ -139,6 +201,52 @@ export class DbStorage implements IStorage {
 
   async getAllGenerationRequests(): Promise<GenerationRequest[]> {
     return db.select().from(generationRequests);
+  }
+  
+  async getUserGenerationRequests(userId: number): Promise<GenerationRequest[]> {
+    return db.select().from(generationRequests).where(eq(generationRequests.userId, userId));
+  }
+
+  // User methods
+  async createUser(user: InsertUser): Promise<User> {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const newUser = {
+      ...user,
+      password: hashedPassword,
+    };
+    
+    const result = await db.insert(users).values(newUser).returning();
+    return result[0];
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    const results = await db.select().from(users).where(eq(users.id, id));
+    return results[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const results = await db.select().from(users).where(eq(users.email, email));
+    return results[0];
+  }
+
+  async verifyUserPassword(email: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return undefined;
+    
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) return undefined;
+    
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    // If password is being updated, hash it
+    if (updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 10);
+    }
+    
+    await db.update(users).set(updates).where(eq(users.id, id));
+    return this.getUserById(id);
   }
 }
 

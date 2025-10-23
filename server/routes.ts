@@ -1,19 +1,167 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
 import { generateWebsite, customizeWebsiteColors, customizeWebsiteTexts, customizeWebsiteImages } from "./openai";
-import { insertGenerationRequestSchema, customizeWebsiteSchema } from "@shared/schema";
+import { insertGenerationRequestSchema, customizeWebsiteSchema, registerUserSchema, loginUserSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import JSZip from "jszip";
+import passport, { requireAuth, getCurrentUser } from "./auth";
+import { db } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // POST /api/generate - Generate a new website with AI
+  // Configure session middleware
+  const PgSession = connectPgSimple(session);
+  
+  // Require SESSION_SECRET in production
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret) {
+    console.error("WARNING: SESSION_SECRET not set. Using a temporary secret for development.");
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error("SESSION_SECRET environment variable is required in production");
+    }
+  }
+  
+  // Configure secure cookies based on environment
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Set trust proxy for accurate req.secure detection behind proxies (like Replit)
+  if (isProduction) {
+    app.set('trust proxy', 1);
+  }
+  
+  app.use(
+    session({
+      store: new PgSession({
+        conString: process.env.DATABASE_URL,
+        tableName: 'user_sessions',
+      }),
+      secret: sessionSecret || 'dev-only-secret-' + Math.random(),
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        secure: isProduction, // only secure cookies in production
+        httpOnly: true,
+        sameSite: 'lax', // CSRF protection
+      },
+    })
+  );
+
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Authentication routes
+  
+  // POST /api/register - Register new user
+  app.post("/api/register", async (req, res) => {
+    try {
+      const validatedData = registerUserSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existing = await storage.getUserByEmail(validatedData.email);
+      if (existing) {
+        return res.status(400).json({ error: "Este email ya está registrado" });
+      }
+      
+      // Create new user
+      const user = await storage.createUser(validatedData);
+      
+      // Login the user after registration
+      req.logIn(user, (err: any) => {
+        if (err) {
+          return res.status(500).json({ error: "Error iniciando sesión" });
+        }
+        
+        // Return user without password
+        const { password, ...userWithoutPassword } = user;
+        res.json({ user: userWithoutPassword });
+      });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      } else {
+        console.error("Error registering user:", error);
+        res.status(500).json({ error: "Error al registrar usuario" });
+      }
+    }
+  });
+
+  // POST /api/login - Login user
+  app.post("/api/login", (req, res, next) => {
+    try {
+      loginUserSchema.parse(req.body);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+    }
+    
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ error: "Error en el servidor" });
+      }
+      if (!user) {
+        return res.status(401).json({ error: info.message || "Email o contraseña incorrectos" });
+      }
+      
+      req.logIn(user, (err: any) => {
+        if (err) {
+          return res.status(500).json({ error: "Error iniciando sesión" });
+        }
+        
+        // Return user without password
+        const { password, ...userWithoutPassword } = user;
+        res.json({ user: userWithoutPassword });
+      });
+    })(req, res, next);
+  });
+
+  // POST /api/logout - Logout user
+  app.post("/api/logout", (req, res) => {
+    req.logout((err: any) => {
+      if (err) {
+        return res.status(500).json({ error: "Error cerrando sesión" });
+      }
+      res.json({ message: "Sesión cerrada exitosamente" });
+    });
+  });
+
+  // GET /api/me - Get current user
+  app.get("/api/me", (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
+    
+    const user = req.user as any;
+    const { password, ...userWithoutPassword } = user;
+    res.json({ user: userWithoutPassword });
+  });
+
+  // GET /api/my-websites - Get user's websites
+  app.get("/api/my-websites", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const websites = await storage.getUserGenerationRequests(user.id);
+      res.json({ websites });
+    } catch (error) {
+      console.error("Error fetching user websites:", error);
+      res.status(500).json({ error: "Error al obtener tus webs" });
+    }
+  });
+
+  // POST /api/generate - Generate a new website with AI (now with optional auth)
   app.post("/api/generate", async (req, res) => {
     try {
       const validatedData = insertGenerationRequestSchema.parse(req.body);
 
+      // Get user ID if authenticated
+      const userId = req.isAuthenticated() ? (req.user as any).id : undefined;
+      
       // Create initial request in storage
-      const request = await storage.createGenerationRequest(validatedData);
+      const request = await storage.createGenerationRequest(validatedData, userId);
 
       // Generate website with OpenAI
       const generated = await generateWebsite(

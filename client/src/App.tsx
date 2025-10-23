@@ -10,6 +10,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { KonamiCode } from "@/components/KonamiCode";
 import Landing from "@/pages/Landing";
 import Builder from "@/pages/Builder";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +19,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/builder" component={Builder} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route component={NotFound} />
     </Switch>
   );

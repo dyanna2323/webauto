@@ -82,76 +82,74 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Link href="/">
-          <Button variant="ghost" className="mb-4 text-white backdrop-blur-sm" data-testid="button-back-home">
+          <Button variant="ghost" className="mb-4" data-testid="button-back-home">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver al inicio
           </Button>
         </Link>
 
-        <Card className="bg-white/90 backdrop-blur-md border-white/50 shadow-2xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Crear Cuenta
-            </CardTitle>
-            <CardDescription className="text-gray-700">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
+            <CardDescription>
               Regístrate gratis y empieza a crear webs profesionales
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-gray-700 font-semibold">Nombre (opcional)</Label>
+                <Label htmlFor="name">Nombre (opcional)</Label>
                 <input
                   id="name"
                   type="text"
                   placeholder="Tu nombre"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border-2 border-purple-200 bg-white/80 focus:border-purple-500 focus:ring-2 focus:ring-purple-300 transition-all"
+                  className="w-full h-10 px-3 rounded-md border bg-background"
                   data-testid="input-name"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700 font-semibold">Email *</Label>
+                <Label htmlFor="email">Email *</Label>
                 <input
                   id="email"
                   type="email"
                   placeholder="tu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border-2 border-purple-200 bg-white/80 focus:border-purple-500 focus:ring-2 focus:ring-purple-300 transition-all"
+                  className="w-full h-10 px-3 rounded-md border bg-background"
                   data-testid="input-email"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700 font-semibold">Contraseña *</Label>
+                <Label htmlFor="password">Contraseña *</Label>
                 <input
                   id="password"
                   type="password"
                   placeholder="Mínimo 6 caracteres"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border-2 border-purple-200 bg-white/80 focus:border-purple-500 focus:ring-2 focus:ring-purple-300 transition-all"
+                  className="w-full h-10 px-3 rounded-md border bg-background"
                   data-testid="input-password"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-password" className="text-gray-700 font-semibold">Confirmar Contraseña *</Label>
+                <Label htmlFor="confirm-password">Confirmar Contraseña *</Label>
                 <input
                   id="confirm-password"
                   type="password"
                   placeholder="Repite tu contraseña"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border-2 border-purple-200 bg-white/80 focus:border-purple-500 focus:ring-2 focus:ring-purple-300 transition-all"
+                  className="w-full h-10 px-3 rounded-md border bg-background"
                   data-testid="input-confirm-password"
                   required
                 />
@@ -159,16 +157,16 @@ export default function Register() {
 
               <RippleButton
                 type="submit"
-                className="w-full h-14 bg-gradient-to-r from-green-400 to-blue-500 text-white font-bold text-lg rounded-xl shadow-lg"
+                className="w-full"
                 disabled={registerMutation.isPending}
                 data-testid="button-register"
               >
                 {registerMutation.isPending ? 'Creando cuenta...' : 'Crear Cuenta Gratis'}
               </RippleButton>
 
-              <div className="text-center text-sm text-gray-700">
+              <div className="text-center text-sm">
                 ¿Ya tienes cuenta?{' '}
-                <Link href="/login" className="text-purple-600 hover:text-pink-600 font-semibold hover:underline">
+                <Link href="/login" className="text-primary hover:underline">
                   Inicia sesión
                 </Link>
               </div>

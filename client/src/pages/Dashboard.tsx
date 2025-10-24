@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Loader2, Plus, Download, Trash2, Edit, LogOut, User } from 'lucide-react';
+import { Loader2, Plus, Download, Trash2, Edit, LogOut, User as UserIcon, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import type { GenerationRequest } from '@shared/schema';
+import type { GenerationRequest, User } from '@shared/schema';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,14 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Fetch user data
+  const { data: userData } = useQuery<{ user: User }>({
+    queryKey: ['/api/me'],
+    retry: false,
+  });
+
+  const isPremiumUser = userData?.user?.plan === 'premium' || userData?.user?.plan === 'pro';
 
   // Fetch user's websites
   const { data, isLoading, error } = useQuery<MyWebsitesResponse>({
@@ -125,8 +134,20 @@ export default function Dashboard() {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <User className="h-6 w-6 text-primary" />
+            <UserIcon className="h-6 w-6 text-primary" />
             <h1 className="text-xl md:text-2xl font-bold">Mis Webs</h1>
+            {userData?.user && (
+              <Badge variant={isPremiumUser ? "default" : "secondary"} className="gap-1">
+                {isPremiumUser ? (
+                  <>
+                    <Crown className="h-3 w-3" />
+                    Premium
+                  </>
+                ) : (
+                  'Gratuito'
+                )}
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -255,14 +276,26 @@ export default function Dashboard() {
                         <Edit className="h-4 w-4 mr-1" />
                         Editar
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownload(website.id)}
-                        data-testid={`button-download-${website.id}`}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
+                      {isPremiumUser ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownload(website.id)}
+                          data-testid={`button-download-${website.id}`}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          data-testid={`button-download-locked-${website.id}`}
+                          title="Actualiza a Premium para descargar"
+                        >
+                          <Crown className="h-4 w-4 text-yellow-500" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

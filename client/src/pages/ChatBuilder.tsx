@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ArrowLeft, Send, Sparkles, Loader2, Download } from 'lucide-react';
+import { ArrowLeft, Send, Sparkles, Loader2, Download, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import type { GenerationRequest, TemplateType } from '@shared/schema';
+import type { GenerationRequest, TemplateType, User } from '@shared/schema';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Message {
   id: string;
@@ -42,6 +43,13 @@ export default function ChatBuilder() {
   const { data: templatesData } = useQuery<TemplatesResponse>({
     queryKey: ['/api/templates'],
   });
+
+  const { data: userData } = useQuery<{ user: User }>({
+    queryKey: ['/api/me'],
+    retry: false,
+  });
+
+  const isPremiumUser = userData?.user?.plan === 'premium' || userData?.user?.plan === 'pro';
 
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -260,22 +268,45 @@ export default function ChatBuilder() {
                   )}
 
                   {message.type === 'assistant' && currentStep === 'complete' && generatedWebsite && index === messages.length - 1 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        onClick={handleDownload}
-                        className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md"
-                        data-testid="button-download-chat"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Descargar ZIP
-                      </Button>
-                      <Button
-                        onClick={() => navigate('/dashboard')}
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md"
-                        data-testid="button-dashboard"
-                      >
-                        Ver Dashboard
-                      </Button>
+                    <div className="mt-3 space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {isPremiumUser ? (
+                          <Button
+                            onClick={handleDownload}
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md"
+                            data-testid="button-download-chat"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Descargar ZIP
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="bg-white/50 border-yellow-500/50 text-gray-800 cursor-not-allowed"
+                            disabled
+                            data-testid="button-download-locked"
+                          >
+                            <Crown className="h-4 w-4 mr-2 text-yellow-500" />
+                            Descargar ZIP (Premium)
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => navigate('/dashboard')}
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md"
+                          data-testid="button-dashboard"
+                        >
+                          Ver Dashboard
+                        </Button>
+                      </div>
+                      {!isPremiumUser && (
+                        <Alert className="bg-yellow-50/95 border-yellow-500/50">
+                          <Crown className="h-4 w-4 text-yellow-600" />
+                          <AlertDescription className="text-sm text-gray-700">
+                            Con el plan gratuito puedes ver tu web online en tu subdominio .replit.app. 
+                            Actualiza a Premium para descargar el código y usar tu propio dominio.
+                          </AlertDescription>
+                        </Alert>
+                      )}
                     </div>
                   )}
                 </div>

@@ -51,13 +51,24 @@ Preferred communication style: Simple, everyday language.
 
 **Recent Features (October 2025):**
 
+**Tier-Based Access Control (October 24, 2025):**
+- Two-tier system: "free" (default) and "premium"/"pro"
+- Free tier: Can generate and preview websites, publish to .replit.app subdomain, but CANNOT download ZIP files
+- Premium tier: Full access including ZIP downloads
+- Download buttons show locked state with lock icon for free users
+- Plan badges displayed in ChatBuilder and Dashboard headers
+- User plan fetched from `/api/me` with `staleTime: 0` to prevent privilege escalation
+- Automatic retry logic (retry: 1) for transient failures
+- Security: No localStorage caching to prevent stale privileges after downgrade
+
 **User Dashboard:**
 - Grid layout showing all user's generated websites
 - Website cards with preview, date, template type
-- Actions: Edit (reopens in Builder), Download (ZIP), Delete (with confirmation)
+- Actions: Edit (reopens in Builder), Download (ZIP - premium only), Delete (with confirmation)
 - Empty state with call-to-action
 - Integration with Builder: localStorage-based editing flow
 - Secure deletion with ownership verification
+- Plan indicator badge (Free/Premium) in dashboard header
 
 ### Backend Architecture
 
@@ -84,10 +95,10 @@ Preferred communication style: Simple, everyday language.
   - SEO meta tags
 
 **Storage Strategy:**
-- In-memory storage (`MemStorage`) for development/prototyping
-- Interface-based design (`IStorage`) allows easy swap to database
-- Schema defined for PostgreSQL compatibility via Drizzle ORM
-- UUID-based identifiers for generation requests
+- **DbStorage** (PostgreSQL via Drizzle ORM) - Active implementation
+- Interface-based design (`IStorage`) allows flexible storage backends
+- MemStorage available as fallback for development
+- Users, sessions, and generation requests persisted in database
 
 **Request Flow:**
 1. Client submits business description + template type
@@ -100,21 +111,33 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage Solutions
 
 **Current Implementation:**
-- In-memory Map-based storage for generation requests
-- No persistence (data lost on server restart)
-- Suitable for development and testing
+- PostgreSQL database via Neon (serverless)
+- Drizzle ORM for type-safe database operations
+- All data persisted across server restarts
+- Session storage in PostgreSQL via connect-pg-simple
 
 **Schema Design (Drizzle ORM):**
-- Table: `generation_requests`
-- Fields:
-  - `id` (varchar, primary key)
-  - `businessDescription` (text)
-  - `templateType` (varchar)
-  - `generatedHtml` (text, nullable)
-  - `generatedCss` (text, nullable)
-  - `generatedJs` (text, nullable)
-  - `customColors` (json, nullable) - stores primary/secondary/accent colors
-  - `createdAt` (timestamp)
+
+*Users Table:*
+- `id` (serial, primary key)
+- `email` (varchar, unique, required)
+- `password` (varchar, hashed, required)
+- `name` (varchar, optional)
+- `plan` (varchar, default: 'free') - 'free', 'premium', or 'pro'
+- `createdAt` (timestamp, auto)
+
+*Generation Requests Table:*
+- `id` (varchar, primary key)
+- `userId` (integer, foreign key to users)
+- `businessDescription` (text, required)
+- `templateType` (varchar, required)
+- `generatedHtml` (text, nullable)
+- `generatedCss` (text, nullable)
+- `generatedJs` (text, nullable)
+- `customColors` (json, nullable) - stores primary/secondary/accent colors
+- `customTexts` (json, nullable) - custom text overrides
+- `customImages` (json, nullable) - custom image URLs
+- `createdAt` (timestamp, auto)
 
 **Database Configuration:**
 - Drizzle Kit configured for PostgreSQL dialect

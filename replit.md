@@ -191,13 +191,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Self-Hosting / Deployment
 
-The application is fully prepared for self-hosting on a VPS to point **technexo.ai** to your own server.
+The application is fully prepared for self-hosting to point **technexo.ai** to your own server.
 
-**Deployment Files:**
-- `DEPLOYMENT.md` - Complete step-by-step deployment guide
+**Deployment Guides:**
+- `DEPLOYMENT_PLESK.md` - **For Plesk dedicated hosting** (GUI-based, easiest)
+- `DEPLOYMENT.md` - For manual VPS setup (Ubuntu/NGINX/PM2)
+
+**Configuration Files:**
 - `.env.example` - Environment variable template
-- `ecosystem.config.js` - PM2 process manager configuration
-- `nginx.conf.example` - NGINX reverse proxy configuration
+- `ecosystem.config.js` - PM2 process manager configuration (VPS only)
+- `nginx.conf.example` - NGINX reverse proxy configuration (VPS only)
 
 **Build Scripts:**
 - `npm run build` - Builds frontend (Vite) and backend (esbuild)

@@ -53,7 +53,7 @@ export default function ChatBuilder() {
     },
     onSuccess: (data) => {
       setGeneratedWebsite(data);
-      addMessage('assistant', '¡Tu web está lista! 🎉 Puedes descargarla ahora o personalizarla más desde el dashboard.');
+      addMessage('assistant', '¡Tu web está lista! Puedes descargarla ahora o personalizarla más desde el dashboard.');
       setCurrentStep('complete');
     },
     onError: (error: Error) => {
@@ -74,7 +74,7 @@ export default function ChatBuilder() {
     const timer = setTimeout(() => {
       addMessage(
         'assistant',
-        '¡Hola! 👋 Soy tu asistente de TecnoAi. Voy a ayudarte a crear una web profesional en minutos. ¿Empezamos?',
+        '¡Hola! Soy tu asistente de TecnoAi. Voy a ayudarte a crear una web profesional en minutos. ¿Empezamos?',
         [
           { label: '¡Sí, empezar!', value: 'start' },
           { label: 'Tengo una pregunta', value: 'question' },
@@ -123,7 +123,7 @@ export default function ChatBuilder() {
         setTimeout(() => {
           addMessage(
             'assistant',
-            `Perfecto, voy a crear una web de ${template.name.toLowerCase()} para ti. Dame un momento mientras genero tu sitio profesional... ✨`
+            `Perfecto, voy a crear una web de ${template.name.toLowerCase()} para ti. Dame un momento mientras genero tu sitio profesional...`
           );
           setCurrentStep('generating');
           generateMutation.mutate();
@@ -204,7 +204,7 @@ export default function ChatBuilder() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-white hover:bg-white/10"
+                className="text-white"
                 data-testid="button-back"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -250,7 +250,7 @@ export default function ChatBuilder() {
                         <Button
                           key={option.value}
                           onClick={() => handleOptionClick(option.value)}
-                          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-md"
+                          className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md"
                           data-testid={`button-option-${option.value}`}
                         >
                           {option.label}
@@ -263,7 +263,7 @@ export default function ChatBuilder() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         onClick={handleDownload}
-                        className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-md"
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md"
                         data-testid="button-download-chat"
                       >
                         <Download className="h-4 w-4 mr-2" />
@@ -271,7 +271,7 @@ export default function ChatBuilder() {
                       </Button>
                       <Button
                         onClick={() => navigate('/dashboard')}
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-md"
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md"
                         data-testid="button-dashboard"
                       >
                         Ver Dashboard
@@ -326,7 +326,7 @@ export default function ChatBuilder() {
               <Button
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim()}
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-2xl px-8 min-h-14"
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl px-8 min-h-14"
                 data-testid="button-send"
               >
                 <Send className="h-5 w-5" />

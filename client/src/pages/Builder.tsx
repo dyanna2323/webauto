@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'wouter';
-import { ArrowLeft, Smartphone, Monitor, Download, Palette, Loader2, Sparkles, Type, Image } from 'lucide-react';
+import { Link, useLocation } from 'wouter';
+import { ArrowLeft, Smartphone, Monitor, Download, Palette, Loader2, Sparkles, Type, Image, MessageCircle, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RippleButton } from '@/components/RippleButton';
@@ -25,9 +25,11 @@ interface TemplatesResponse {
 }
 
 export default function Builder() {
+  const [showModeSelection, setShowModeSelection] = useState(true);
   const [businessDescription, setBusinessDescription] = useState('');
   const [templateType, setTemplateType] = useState<TemplateType>('services');
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [, navigate] = useLocation();
   const [customColors, setCustomColors] = useState({
     primary: '#8B5CF6',
     secondary: '#06B6D4',
@@ -55,6 +57,7 @@ export default function Builder() {
         setGeneratedWebsite(website);
         setBusinessDescription(website.businessDescription);
         setTemplateType(website.templateType as TemplateType);
+        setShowModeSelection(false); // Skip mode selection when editing
         
         // Pre-load custom colors if they exist
         if (website.customColors) {
@@ -240,6 +243,142 @@ export default function Builder() {
       }}
     />
   ) : null;
+
+  // Mode selection screen
+  if (showModeSelection) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-5xl">
+          <Link href="/">
+            <Button variant="ghost" className="mb-6" data-testid="button-back-home">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver al inicio
+            </Button>
+          </Link>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-5xl font-black mb-4 gradient-text">
+              ¿Cómo prefieres crear tu web?
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Elige el método que más te guste
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Card 
+                className="hover-elevate cursor-pointer h-full transition-all"
+                onClick={() => navigate('/chat-builder')}
+                data-testid="card-chat-mode"
+              >
+                <CardHeader>
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4">
+                    <MessageCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl">Chat Conversacional</CardTitle>
+                  <CardDescription className="text-base">
+                    Un asistente virtual te guía paso a paso
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      Conversación natural y amigable
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      Perfecto para principiantes
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      Preguntas claras y opciones sugeridas
+                    </p>
+                  </div>
+                  <RippleButton 
+                    className="w-full mt-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/chat-builder');
+                    }}
+                    data-testid="button-choose-chat"
+                  >
+                    Usar Chat
+                  </RippleButton>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Card 
+                className="hover-elevate cursor-pointer h-full transition-all"
+                onClick={() => setShowModeSelection(false)}
+                data-testid="card-form-mode"
+              >
+                <CardHeader>
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
+                    <FileText className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl">Formulario Tradicional</CardTitle>
+                  <CardDescription className="text-base">
+                    Control completo desde el inicio
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      Vista previa en tiempo real
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      Personalización avanzada
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      Edita colores, textos e imágenes
+                    </p>
+                  </div>
+                  <RippleButton 
+                    className="w-full mt-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowModeSelection(false);
+                    }}
+                    data-testid="button-choose-form"
+                  >
+                    Usar Formulario
+                  </RippleButton>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

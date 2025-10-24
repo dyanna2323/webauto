@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { KonamiCode } from "@/components/KonamiCode";
 import Landing from "@/pages/Landing";
 import Builder from "@/pages/Builder";
+import ChatBuilder from "@/pages/ChatBuilder";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
@@ -20,6 +21,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/builder" component={Builder} />
+      <Route path="/chat-builder" component={ChatBuilder} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard" component={Dashboard} />

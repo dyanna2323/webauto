@@ -188,3 +188,33 @@ Preferred communication style: Simple, everyday language.
 - Shared schema types between client and server via `@shared/schema`
 - Drizzle Zod integration for automatic validation schemas
 - TypeScript strict mode enabled
+
+## Self-Hosting / Deployment
+
+The application is fully prepared for self-hosting on a VPS to point **technexo.ai** to your own server.
+
+**Deployment Files:**
+- `DEPLOYMENT.md` - Complete step-by-step deployment guide
+- `.env.example` - Environment variable template
+- `ecosystem.config.js` - PM2 process manager configuration
+- `nginx.conf.example` - NGINX reverse proxy configuration
+
+**Build Scripts:**
+- `npm run build` - Builds frontend (Vite) and backend (esbuild)
+- `npm start` - Runs production server
+- `npm run db:push` - Syncs database schema
+
+**Recommended VPS Providers:**
+- Hetzner Cloud: €4.49/month (2GB RAM, 1 CPU)
+- DigitalOcean: $6/month (1GB RAM, 1 CPU)
+- Vultr/Linode: $5-6/month
+
+**Production Stack:**
+- Node.js 20.x + Express
+- PostgreSQL (self-hosted or managed)
+- NGINX reverse proxy
+- PM2 process manager
+- Let's Encrypt SSL (free HTTPS)
+- Ubuntu 22.04 LTS recommended
+
+See `DEPLOYMENT.md` for complete instructions.

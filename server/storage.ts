@@ -224,6 +224,7 @@ export class DbStorage implements IStorage {
       const newUser = {
         ...user,
         password: hashedPassword,
+        plan: 'free' as const, // Explicitly set default plan
       };
       
       console.log('Creating user with data:', { ...newUser, password: '[REDACTED]' });

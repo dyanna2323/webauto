@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Loader2, Plus, Download, Trash2, Edit, LogOut, User as UserIcon, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,12 +34,16 @@ export default function Dashboard() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Fetch user data
-  const { data: userData } = useQuery<{ user: User }>({
+  const { data: userData, isLoading: isLoadingUser, error: userError } = useQuery<{ user: User }>({
     queryKey: ['/api/me'],
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 0, // Always fetch fresh to prevent stale privileges
   });
 
   const isPremiumUser = userData?.user?.plan === 'premium' || userData?.user?.plan === 'pro';
+  const is401Error = userError?.message?.startsWith('401');
+  const isAuthenticated = !!userData?.user;
 
   // Fetch user's websites
   const { data, isLoading, error } = useQuery<MyWebsitesResponse>({
@@ -178,6 +183,21 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Error alert for non-401 errors */}
+        {userError && !is401Error && (
+          <Alert className="mb-6">
+            <AlertDescription>
+              No pudimos verificar tu plan. Por favor,{' '}
+              <button 
+                onClick={() => window.location.reload()} 
+                className="underline font-medium"
+              >
+                recarga la página
+              </button>
+              {' '}para confirmar tu acceso de descarga.
+            </AlertDescription>
+          </Alert>
+        )}
         {isLoading ? (
           <div className="flex justify-center items-center min-h-[400px]">
             <Loader2 className="h-12 w-12 animate-spin text-primary" data-testid="loader-websites" />
@@ -276,7 +296,26 @@ export default function Dashboard() {
                         <Edit className="h-4 w-4 mr-1" />
                         Editar
                       </Button>
-                      {isPremiumUser ? (
+                      {isLoadingUser ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          data-testid={`button-download-loading-${website.id}`}
+                        >
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </Button>
+                      ) : is401Error ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          data-testid={`button-download-login-${website.id}`}
+                          title="Inicia sesión para descargar"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      ) : isPremiumUser ? (
                         <Button
                           variant="outline"
                           size="sm"
@@ -285,7 +324,7 @@ export default function Dashboard() {
                         >
                           <Download className="h-4 w-4" />
                         </Button>
-                      ) : (
+                      ) : userData?.user ? (
                         <Button
                           variant="outline"
                           size="sm"
@@ -294,6 +333,16 @@ export default function Dashboard() {
                           title="Actualiza a Premium para descargar"
                         >
                           <Crown className="h-4 w-4 text-yellow-500" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          data-testid={`button-download-unknown-${website.id}`}
+                          title="Verifica tu conexión"
+                        >
+                          <Download className="h-4 w-4" />
                         </Button>
                       )}
                       <Button

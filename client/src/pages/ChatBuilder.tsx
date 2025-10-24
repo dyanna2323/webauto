@@ -44,12 +44,16 @@ export default function ChatBuilder() {
     queryKey: ['/api/templates'],
   });
 
-  const { data: userData } = useQuery<{ user: User }>({
+  const { data: userData, isLoading: isLoadingUser, error: userError } = useQuery<{ user: User }>({
     queryKey: ['/api/me'],
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 0, // Always fetch fresh to prevent stale privileges
   });
 
   const isPremiumUser = userData?.user?.plan === 'premium' || userData?.user?.plan === 'pro';
+  const is401Error = userError?.message?.startsWith('401');
+  const isAuthenticated = !!userData?.user;
 
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -269,43 +273,85 @@ export default function ChatBuilder() {
 
                   {message.type === 'assistant' && currentStep === 'complete' && generatedWebsite && index === messages.length - 1 && (
                     <div className="mt-3 space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {isPremiumUser ? (
-                          <Button
-                            onClick={handleDownload}
-                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md"
-                            data-testid="button-download-chat"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Descargar ZIP
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="bg-white/50 border-yellow-500/50 text-gray-800 cursor-not-allowed"
-                            disabled
-                            data-testid="button-download-locked"
-                          >
-                            <Crown className="h-4 w-4 mr-2 text-yellow-500" />
-                            Descargar ZIP (Premium)
-                          </Button>
-                        )}
-                        <Button
-                          onClick={() => navigate('/dashboard')}
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md"
-                          data-testid="button-dashboard"
-                        >
-                          Ver Dashboard
-                        </Button>
-                      </div>
-                      {!isPremiumUser && (
-                        <Alert className="bg-yellow-50/95 border-yellow-500/50">
-                          <Crown className="h-4 w-4 text-yellow-600" />
+                      {/* Error alert for non-401 errors (shown alongside buttons) */}
+                      {userError && !is401Error && (
+                        <Alert className="bg-red-50/95 border-red-500/50">
                           <AlertDescription className="text-sm text-gray-700">
-                            Con el plan gratuito puedes ver tu web online en tu subdominio .replit.app. 
-                            Actualiza a Premium para descargar el código y usar tu propio dominio.
+                            No pudimos verificar tu plan. Por favor,{' '}
+                            <button 
+                              onClick={() => window.location.reload()} 
+                              className="underline font-medium"
+                            >
+                              recarga la página
+                            </button>
+                            {' '}para verificar tu acceso de descarga.
                           </AlertDescription>
                         </Alert>
+                      )}
+                      
+                      {/* Download buttons */}
+                      {isLoadingUser ? (
+                        <div className="flex items-center gap-2 text-white/80">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Verificando tu plan...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex flex-wrap gap-2">
+                            {is401Error ? (
+                              <Button
+                                onClick={() => navigate('/login')}
+                                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md"
+                                data-testid="button-login-to-download"
+                              >
+                                Iniciar Sesión para Descargar
+                              </Button>
+                            ) : isPremiumUser ? (
+                              <Button
+                                onClick={handleDownload}
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md"
+                                data-testid="button-download-chat"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar ZIP
+                              </Button>
+                            ) : userData?.user ? (
+                              <Button
+                                variant="outline"
+                                className="bg-white/50 border-yellow-500/50 text-gray-800 cursor-not-allowed"
+                                disabled
+                                data-testid="button-download-locked"
+                              >
+                                <Crown className="h-4 w-4 mr-2 text-yellow-500" />
+                                Descargar ZIP (Premium)
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => navigate('/login')}
+                                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md"
+                                data-testid="button-login-unknown"
+                              >
+                                Iniciar Sesión
+                              </Button>
+                            )}
+                            <Button
+                              onClick={() => navigate('/dashboard')}
+                              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md"
+                              data-testid="button-dashboard"
+                            >
+                              Ver Dashboard
+                            </Button>
+                          </div>
+                          {userData?.user && !isPremiumUser && !userError && (
+                            <Alert className="bg-yellow-50/95 border-yellow-500/50">
+                              <Crown className="h-4 w-4 text-yellow-600" />
+                              <AlertDescription className="text-sm text-gray-700">
+                                Con el plan gratuito puedes ver tu web online en tu subdominio .replit.app. 
+                                Actualiza a Premium para descargar el código y usar tu propio dominio.
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

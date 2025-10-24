@@ -59,47 +59,49 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Link href="/">
-          <Button variant="ghost" className="mb-4" data-testid="button-back-home">
+          <Button variant="ghost" className="mb-4 text-white backdrop-blur-sm" data-testid="button-back-home">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver al inicio
           </Button>
         </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>
+        <Card className="bg-white/90 backdrop-blur-md border-white/50 shadow-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Iniciar Sesión
+            </CardTitle>
+            <CardDescription className="text-gray-700">
               Accede a tu cuenta para gestionar tus webs
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-700 font-semibold">Email</Label>
                 <input
                   id="email"
                   type="email"
                   placeholder="tu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-10 px-3 rounded-md border bg-background"
+                  className="w-full h-12 px-4 rounded-xl border-2 border-purple-200 bg-white/80 focus:border-purple-500 focus:ring-2 focus:ring-purple-300 transition-all"
                   data-testid="input-email"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password" className="text-gray-700 font-semibold">Contraseña</Label>
                 <input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-10 px-3 rounded-md border bg-background"
+                  className="w-full h-12 px-4 rounded-xl border-2 border-purple-200 bg-white/80 focus:border-purple-500 focus:ring-2 focus:ring-purple-300 transition-all"
                   data-testid="input-password"
                   required
                 />
@@ -107,16 +109,16 @@ export default function Login() {
 
               <RippleButton
                 type="submit"
-                className="w-full"
+                className="w-full h-14 bg-gradient-to-r from-green-400 to-blue-500 text-white font-bold text-lg rounded-xl shadow-lg"
                 disabled={loginMutation.isPending}
                 data-testid="button-login"
               >
                 {loginMutation.isPending ? 'Iniciando sesión...' : 'Iniciar Sesión'}
               </RippleButton>
 
-              <div className="text-center text-sm">
+              <div className="text-center text-sm text-gray-700">
                 ¿No tienes cuenta?{' '}
-                <Link href="/register" className="text-primary hover:underline">
+                <Link href="/register" className="text-purple-600 hover:text-pink-600 font-semibold hover:underline">
                   Regístrate gratis
                 </Link>
               </div>

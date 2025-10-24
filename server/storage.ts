@@ -219,14 +219,21 @@ export class DbStorage implements IStorage {
 
   // User methods
   async createUser(user: InsertUser): Promise<User> {
-    const hashedPassword = await bcrypt.hash(user.password, 10);
-    const newUser = {
-      ...user,
-      password: hashedPassword,
-    };
-    
-    const result = await db.insert(users).values(newUser).returning();
-    return result[0];
+    try {
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      const newUser = {
+        ...user,
+        password: hashedPassword,
+      };
+      
+      console.log('Creating user with data:', { ...newUser, password: '[REDACTED]' });
+      const result = await db.insert(users).values(newUser).returning();
+      console.log('User created successfully:', { id: result[0].id, email: result[0].email });
+      return result[0];
+    } catch (error) {
+      console.error('Error creating user in database:', error);
+      throw error;
+    }
   }
 
   async getUserById(id: number): Promise<User | undefined> {

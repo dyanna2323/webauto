@@ -42,8 +42,10 @@ Preferred communication style: Simple, everyday language.
 - TypingAnimation: Typewriter effect for text
 
 **Page Structure:**
-- Landing: Marketing page with pain points, features, pricing
+- TecnoAiLanding (/): Modern two-column landing page with hero section and animated chat preview
+- Landing (/landing-old): Original marketing page with pain points, features, pricing
 - Builder: Website generation interface with preview and customization
+- ChatBuilder: Conversational AI interface for website creation
 - Login: User authentication page with email/password
 - Register: User registration with password confirmation
 - Dashboard: User's websites management (view, edit, delete, download)

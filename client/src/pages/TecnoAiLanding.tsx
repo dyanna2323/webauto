@@ -11,9 +11,9 @@ interface Message {
 }
 
 const allMessages: Message[] = [
-  { id: 1, sender: 'assistant', text: '¡Hola! 👋 Vamos a crear tu web perfecta. ¿Qué tipo de negocio tienes?' },
+  { id: 1, sender: 'assistant', text: '¡Hola! Vamos a crear tu web perfecta. ¿Qué tipo de negocio tienes?' },
   { id: 2, sender: 'user', text: 'Tengo un restaurante mediterráneo.' },
-  { id: 3, sender: 'assistant', text: '¡Perfecto! Un restaurante mediterráneo suena genial 😊 ¿Cuál es el nombre de tu negocio?' },
+  { id: 3, sender: 'assistant', text: '¡Perfecto! Un restaurante mediterráneo suena genial. ¿Cuál es el nombre de tu negocio?' },
   { id: 4, sender: 'user', text: "Se llama 'Mare Nostrum'" },
 ];
 
@@ -132,7 +132,7 @@ export default function TecnoAiLanding() {
                       className="bg-white text-[#0A1628] font-bold text-lg px-8 py-4 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.5)]"
                       data-testid="button-create-web"
                     >
-                      ⚡ Crear Mi Web Ahora
+                      Crear Mi Web Ahora
                     </button>
                   </Link>
                   <p className="mt-3 text-sm text-white/80">Completamente gratis</p>
@@ -163,18 +163,18 @@ export default function TecnoAiLanding() {
 
                 <ul className="mt-8 space-y-4 inline-block text-left">
                   {features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-3">
+                    <li key={index} className="flex items-center gap-3" data-testid={`feature-${index}`}>
                       <CheckIcon className="h-6 w-6 text-cyan-400" />
-                      <span className="text-gray-200 text-lg">{feature}</span>
+                      <span className="text-gray-200 text-lg" data-testid={`text-feature-${index}`}>{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 <div className="mt-12 pt-8 border-t border-white/10 flex justify-center lg:justify-start gap-8 sm:gap-12">
                   {stats.map((stat, index) => (
-                    <div key={index} className="text-center">
-                      <p className="text-3xl font-bold text-white">{stat.value}</p>
-                      <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
+                    <div key={index} className="text-center" data-testid={`stat-${stat.value.toLowerCase().replace(/[^a-z0-9]/g, '')}`}>
+                      <p className="text-3xl font-bold text-white" data-testid={`text-stat-value-${index}`}>{stat.value}</p>
+                      <p className="text-sm text-gray-400 mt-1" data-testid={`text-stat-label-${index}`}>{stat.label}</p>
                     </div>
                   ))}
                 </div>

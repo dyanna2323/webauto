@@ -8,6 +8,7 @@ import { ParallaxShapes } from "@/components/ParallaxShapes";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { KonamiCode } from "@/components/KonamiCode";
+import TecnoAiLanding from "@/pages/TecnoAiLanding";
 import Landing from "@/pages/Landing";
 import Builder from "@/pages/Builder";
 import ChatBuilder from "@/pages/ChatBuilder";
@@ -19,7 +20,8 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={TecnoAiLanding} />
+      <Route path="/landing-old" component={Landing} />
       <Route path="/builder" component={Builder} />
       <Route path="/chat-builder" component={ChatBuilder} />
       <Route path="/login" component={Login} />

@@ -9,7 +9,7 @@ import { ScrollProgress } from "@/components/ScrollProgress";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { KonamiCode } from "@/components/KonamiCode";
 import { PromoBar } from "@/components/PromoBar";
-import TecnoAiLanding from "@/pages/TecnoAiLanding";
+import TechNexoLanding from "@/pages/TechNexoLanding";
 import Landing from "@/pages/Landing";
 import Builder from "@/pages/Builder";
 import ChatBuilder from "@/pages/ChatBuilder";
@@ -21,7 +21,7 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={TecnoAiLanding} />
+      <Route path="/" component={TechNexoLanding} />
       <Route path="/landing-old" component={Landing} />
       <Route path="/builder" component={Builder} />
       <Route path="/chat-builder" component={ChatBuilder} />

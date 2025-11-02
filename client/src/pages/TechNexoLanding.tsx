@@ -90,7 +90,7 @@ function ChatPreview() {
   );
 }
 
-export default function TecnoAiLanding() {
+export default function TechNexoLanding() {
   const features = [
     'Diseño profesional automático',
     'Optimizado para móviles',
@@ -110,7 +110,7 @@ export default function TecnoAiLanding() {
           <header className="absolute top-0 left-1/2 -translate-x-1/2 py-6 z-10">
             <div className="flex items-center gap-3">
               <LogoIcon className="h-10 w-10" />
-              <span className="text-white text-2xl font-bold tracking-wide">TecnoAi</span>
+              <span className="text-white text-2xl font-bold tracking-wide">TechNexo</span>
             </div>
           </header>
           

@@ -380,7 +380,7 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* Glow effect for TecnoAi hero button */
+  /* Glow effect for TechNexo hero button */
   .glow-on-hover:hover {
     box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
   }
@@ -420,6 +420,20 @@
     50% {
       transform: translateY(-12px);
     }
+  }
+
+  /* Animation delays */
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  /* 3D perspective for device mockups */
+  .perspective-1000 {
+    perspective: 1000px;
   }
 
   @keyframes bounce-subtle {

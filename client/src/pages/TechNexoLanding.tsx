@@ -56,12 +56,12 @@ function ChatPreview() {
   return (
     <div className="bg-[#101C30] border border-white/10 rounded-3xl shadow-2xl shadow-black/30 flex flex-col h-[34rem] max-h-[90vh]">
       <div className="p-4 border-b border-white/10 text-center">
-        <h3 className="font-semibold text-gray-200">TecnoAi Assistant</h3>
+        <h3 className="font-semibold text-gray-200">TechNexo Assistant</h3>
         <p className="text-sm text-gray-400">Creando tu web perfecta</p>
       </div>
       <div ref={chatContainerRef} className="flex-1 p-6 space-y-5 overflow-y-auto">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex items-end gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+        {messages.map((msg, index) => (
+          <div key={`msg-${msg.id}-${index}`} className={`flex items-end gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.sender === 'assistant' && (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0066FF] to-[#00D4FF] flex-shrink-0"></div>
             )}

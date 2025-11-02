@@ -8,6 +8,7 @@ import { ParallaxShapes } from "@/components/ParallaxShapes";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { KonamiCode } from "@/components/KonamiCode";
+import { PromoBar } from "@/components/PromoBar";
 import TecnoAiLanding from "@/pages/TecnoAiLanding";
 import Landing from "@/pages/Landing";
 import Builder from "@/pages/Builder";
@@ -46,7 +47,11 @@ function App() {
         </div>
 
         <Toaster />
-        <Router />
+        
+        <div className="min-h-screen">
+          <PromoBar />
+          <Router />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );

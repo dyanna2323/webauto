@@ -42,7 +42,7 @@ Preferred communication style: Simple, everyday language.
 - TypingAnimation: Typewriter effect for text
 
 **Page Structure:**
-- TecnoAiLanding (/): Modern two-column landing page with hero section and animated chat preview
+- TechNexoLanding (/): Modern two-column landing page with hero section and animated chat preview
 - Landing (/landing-old): Original marketing page with pain points, features, pricing
 - Builder: Website generation interface with preview and customization
 - ChatBuilder: Conversational AI interface for website creation

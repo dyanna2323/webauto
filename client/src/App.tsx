@@ -22,6 +22,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={TechNexoLanding} />
+      <Route path="/landing" component={TechNexoLanding} />
       <Route path="/landing-old" component={Landing} />
       <Route path="/builder" component={Builder} />
       <Route path="/chat-builder" component={ChatBuilder} />
